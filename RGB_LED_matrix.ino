@@ -25,7 +25,7 @@ String text = "Hello";
 
 CRGB leds[NUM_LEDS]; //Liste som inneholder fargen til alle lysene
 
-String events[] = {"Snake", "Rainbow", "Sunshine", "Fire"};
+String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti"};
 int numberOfEvents = sizeof(events) / sizeof(String);
 
 void setup() {
@@ -41,9 +41,14 @@ void setup() {
 
   server.on("/", handle_mainMenu);
   server.on("/Snake", handle_snake);
+  server.on("/SnakeUp", handle_snakeUp);
+  server.on("/SnakeLeft", handle_snakeLeft);
+  server.on("/SnakeDown", handle_snakeDown);
+  server.on("/SnakeRight", handle_snakeRight);
   server.on("/Rainbow", handle_rainbow);
   server.on("/Sunshine", handle_sunshine);
   server.on("/Fire", handle_fire);
+  server.on("/Confetti", handle_confetti);
   server.onNotFound(handle_NotFound);
   server.begin();
 }
@@ -77,6 +82,10 @@ void loop() {
       queue = "";
       fire(ROWS, COLUMNS, leds);
     }
+    else if (queue == "confetti") {
+      queue = "";
+      confetti(ROWS, COLUMNS, leds);
+    }
   }
   
 }
@@ -94,6 +103,25 @@ void handle_snake() {
   breakLoop = true;
 }
 
+void handle_snakeUp() {
+  server.send(200, "text/html", snakeHTML());
+  up = true;
+}
+void handle_snakeLeft() {
+  server.send(200, "text/html", snakeHTML());
+  left = true;
+}
+
+void handle_snakeRight() {
+  server.send(200, "text/html", snakeHTML());
+  right = true;
+}
+
+void handle_snakeDown() {
+  server.send(200, "text/html", snakeHTML());
+  down = true;
+}
+
 void handle_rainbow() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
   queue = "rainbow";
@@ -109,6 +137,12 @@ void handle_sunshine() {
 void handle_fire() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
   queue = "fire";
+  breakLoop = true;
+}
+
+void handle_confetti() {
+  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
+  queue = "confetti";
   breakLoop = true;
 }
 
