@@ -26,7 +26,7 @@ String mainMenuHTML(String *links, int numberOfLinks) {
          html +=            "<h1 style=\"color:#FFFFFF;\">Main menu</h1>";
          html +=            "<hr>";
          
-         for (int i = 0; i < 4; i++) {
+         for (int i = 0; i < numberOfLinks; i++) {
            html +=          "<a href=\"/" + links[i] + "\">" + links[i] + "</a>";
            html +=          "<hr>";
          }
