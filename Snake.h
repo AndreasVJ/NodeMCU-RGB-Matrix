@@ -1,22 +1,3 @@
-void handle_snakeUp() {
-  server.send(200, "text/html", snakeHTML());
-  up = true;
-}
-void handle_snakeLeft() {
-  server.send(200, "text/html", snakeHTML());
-  left = true;
-}
-
-void handle_snakeRight() {
-  server.send(200, "text/html", snakeHTML());
-  right = true;
-}
-
-void handle_snakeDown() {
-  server.send(200, "text/html", snakeHTML());
-  down = true;
-}
-
 // Oppdaterer listen med kommandoer for slangen.
 // Hvert trykk blir lagret og deretter lest når bildet oppdaterer.
 // Hensikten er at man ikke skal kunne endre retningen flere ganger før slangen flytter seg, 
@@ -54,12 +35,6 @@ void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]
   down = false;
   right = false;
   up = false;
-
-  // Definerer svar på forespørsel om å endre retning
-  server.on("/SnakeUp", handle_snakeUp);
-  server.on("/SnakeLeft", handle_snakeLeft);
-  server.on("/SnakeDown", handle_snakeDown);
-  server.on("/SnakeRight", handle_snakeRight);
 
   int grid[numberOfRows][numberOfColumns]; // Lager griden
   const int middleRow = round(numberOfRows/2); // Finner midten
