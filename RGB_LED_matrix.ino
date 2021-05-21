@@ -3,7 +3,7 @@
 #define COLUMNS 14
 #define LED_PIN 4
 
-// Globale variabler som brukes for å utføre kommandoer
+// Global variables used for changing animations and sending commands
 bool left = false;
 bool down = false;
 bool right = false;
@@ -11,6 +11,7 @@ bool up = false;
 bool enter = false;
 bool breakLoop = false;
 
+// Setting "Hello" scrolling text as the first animation after connecting to WiFi
 String queue = "scrolling text";
 String text = "Hello";
 
@@ -23,29 +24,34 @@ String text = "Hello";
 
 #define NUM_LEDS ROWS*COLUMNS
 
-CRGB leds[NUM_LEDS]; //Liste som inneholder fargen til alle lysene
+CRGB leds[NUM_LEDS]; //FastLED list containing the colors of each induvidual pixel
 
-String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti"};
+// List containing all links on main menu. Adding new strings will display them as links on main menu
+String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti", "FastDots"};
 int numberOfEvents = sizeof(events) / sizeof(String);
 
 void setup() {
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.setMaxPowerInVoltsAndMilliamps(5, 1500); //Begrenser strømforbruket til 5v og 1500ma
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 1500);
+  // Garbage signals often turn on some pixels when powering up. This clears these pixels
   FastLED.clear();
   FastLED.show();
   
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, password); // ssid and password variables can be changed in "Website.h"
   Serial.println("");
 
-  // Wait for connection
+  // Simple animation while waiting for connection to WiFi
   int column = 0;
+  int hue = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     for (int i = 0; i<ROWS; i++) {
-      leds[serpentine_xy(column, i)].setRGB(0, 75, 75);
+      leds[serpentine_xy(column, i)].setHSV(hue,255,80);
+      hue += round(255/ROWS);
     }
+    hue = 0;
     FastLED.show();
     if (column == ROWS-1) {
       FastLED.clear();
@@ -55,8 +61,11 @@ void setup() {
       column++;
     }
   }
+  // Clear animation from before
   FastLED.clear();
   FastLED.show();
+
+  // printing name of WiFi and IP address. Write the IP address in a browser to access server
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
@@ -67,6 +76,7 @@ void setup() {
     Serial.println("MDNS responder started");
   }
 
+  // Adding responses to URLs. All handle functions can be found at the end of the file
   server.on("/", handle_mainMenu);
   server.on("/Snake", handle_snake);
   server.on("/SnakeUp", handle_snakeUp);
@@ -77,25 +87,31 @@ void setup() {
   server.on("/Sunshine", handle_sunshine);
   server.on("/Fire", handle_fire);
   server.on("/Confetti", handle_confetti);
+  server.on("/FastDots", handle_fastDots);
   server.onNotFound(handle_NotFound);
   server.begin();
 }
 
+/*
+ * The program will constantly check for requests from clients. Also while playing an animation or game.
+ * Valid request will set breakLoop to true. This will make the program jump out of the current task.
+ * queue will also be set to some other string. A new animation or game will start based on queue.
+ */
 
 void loop() {
   if (queue == "") {
     server.handleClient();
   }
   else {
-    breakLoop = false; // Må settes til false for å ikke hoppe ut av neste loop med en gang
+    breakLoop = false; // Variable used to jump out of animation and game loops. It must be set to false before playing an animation
     if (queue == "snake") {
-      queue = "";
+      queue = ""; // Must be set to empty string to prevent animation from playing again after request to leave
       playSnake(ROWS, COLUMNS, 1000, leds);
     }
     else if (queue == "scrolling text") {
       queue = "";
       scrollingText(text, ROWS, COLUMNS, LED_PIN);
-      FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS); // scrollingText bruker Adafruit_NeoMatrix. Må derfor definere lysene på nytt for FastLED
+      FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS); // scrollingText uses Adafruit_NeoMatrix. Leds has to be added again for FastLED to function properly        
     }
     else if (queue == "rainbow") {
       queue = "";
@@ -113,10 +129,15 @@ void loop() {
       queue = "";
       confetti(ROWS, COLUMNS, leds);
     }
+    else if (queue == "fastDots") {
+      queue = "";
+      fastDots(ROWS, COLUMNS, leds);
+    }
   }
   
 }
 
+// Functions used when a valid request has been received
 void handle_mainMenu() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
   FastLED.clear();
@@ -170,6 +191,12 @@ void handle_fire() {
 void handle_confetti() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
   queue = "confetti";
+  breakLoop = true;
+}
+
+void handle_fastDots() {
+  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
+  queue = "fastDots";
   breakLoop = true;
 }
 

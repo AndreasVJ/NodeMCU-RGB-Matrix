@@ -1,4 +1,30 @@
-// Hentet og modifisert fra https://github.com/atuline/FastLED-Demos/blob/master/confetti_pal/confetti_pal.ino
+// Found on https://github.com/atuline/FastLED-Demos/blob/master/dot_beat/dot_beat.ino
+void fastDots(int rows, int columns, CRGB leds[]) {
+  // Define variables used by the sequences.
+  int numLeds = rows*columns;
+  int   thisdelay =   10;                                       // A delay value for the sequence(s)
+  uint8_t   count =   0;                                        // Count up to 255 and then reverts to 0
+  uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
+  uint8_t bpm = 30;
+
+  while (breakLoop == false) {
+    server.handleClient();
+    uint8_t inner = beatsin8(bpm, numLeds/4, numLeds/4*3);    // Move 1/4 to 3/4
+    uint8_t outer = beatsin8(bpm, 0, numLeds-1);               // Move entire length
+    uint8_t middle = beatsin8(bpm, numLeds/3, numLeds/3*2);   // Move 1/3 to 2/3
+  
+    leds[middle] = CRGB::Purple;
+    leds[inner] = CRGB::Blue;
+    leds[outer] = CRGB::Aqua;
+  
+    nscale8(leds,numLeds,fadeval);                             // Fade the entire array. Or for just a few LED's, use  nscale8(&leds[2], 5, fadeval);
+    FastLED.show();
+  }
+}
+
+
+
+// Found on https://github.com/atuline/FastLED-Demos/blob/master/confetti_pal/confetti_pal.ino
 void confetti(int rows, int columns,CRGB leds[]) {
   int numLeds = rows*columns;
   CRGBPalette16 currentPalette;
@@ -42,7 +68,7 @@ void confetti(int rows, int columns,CRGB leds[]) {
   }
 }
 
-// Hentet og modifisert fra https://github.com/FastLED/FastLED/blob/master/examples/XYMatrix/XYMatrix.ino
+// Found on https://github.com/FastLED/FastLED/blob/master/examples/XYMatrix/XYMatrix.ino
 void rotatingRainbow(int rows, int columns, CRGB leds[]) {
   breakLoop = false;
   while (breakLoop == false) {
@@ -86,7 +112,7 @@ DEFINE_GRADIENT_PALETTE(sunshine_gp) {
     255, 120, 0, 0
 };
 
-// Gir alle lysene en tilfeldig posisjon fra fargepalleten over. Justerer deretter gradvis posisjonen for å lage en animasjon
+// Gives all pixels a color from the palette above. Gradually changes the positions on the palette
 void sunshine(int numberOfRows, int numberOfColumns, CRGB leds[]) {
   breakLoop = false;
   int NUM_LEDS = numberOfRows * numberOfColumns;
@@ -137,7 +163,7 @@ void greenRays(int numberOfRows, int numberOfColumns, CRGB leds[]) {
   }
 }
 
-// Hentet og modifisert fra https://gist.github.com/StefanPetrick/1ba4584e534ba99ca259c1103754e4c5
+// Found on https://gist.github.com/StefanPetrick/1ba4584e534ba99ca259c1103754e4c5
 void fire(int rows, int columns, CRGB leds[]) {
   uint32_t scale_x;
   uint32_t scale_y;

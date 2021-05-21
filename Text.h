@@ -1,5 +1,5 @@
-// basert på eksempelkoden "matrixtest" fra Adafruit industries 
-// For andre layouts se denne nettsiden https://learn.adafruit.com/adafruit-neopixel-uberguide/neomatrix-library
+// Based on the example code "matrixtest" from Adafruit industries 
+// For other layouts see this website https://learn.adafruit.com/adafruit-neopixel-uberguide/neomatrix-library
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_NeoMatrix.h>
@@ -39,7 +39,5 @@ void scrollingText(String text, int rows, int columns, int pin) {
       }
       matrix.show();
     }
-    //yield();
   }
-  
 }
