@@ -29,15 +29,43 @@ String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti"};
 int numberOfEvents = sizeof(events) / sizeof(String);
 
 void setup() {
-  Serial.begin(115200);
-  WiFi.softAP(ssid, password);
-  WiFi.softAPConfig(local_ip, gateway, subnet);
-  delay(100);
-
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, 1500); //Begrenser strømforbruket til 5v og 1500ma
   FastLED.clear();
   FastLED.show();
+  
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.println("");
+
+  // Wait for connection
+  int column = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    for (int i = 0; i<ROWS; i++) {
+      leds[serpentine_xy(column, i)].setRGB(0, 75, 75);
+    }
+    FastLED.show();
+    if (column == ROWS-1) {
+      FastLED.clear();
+      column = 0;
+    }
+    else {
+      column++;
+    }
+  }
+  FastLED.clear();
+  FastLED.show();
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  if (MDNS.begin("esp8266")) {
+    Serial.println("MDNS responder started");
+  }
 
   server.on("/", handle_mainMenu);
   server.on("/Snake", handle_snake);
@@ -55,7 +83,6 @@ void setup() {
 
 
 void loop() {
-  Serial.println("hei hei");
   if (queue == "") {
     server.handleClient();
   }

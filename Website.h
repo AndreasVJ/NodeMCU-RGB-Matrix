@@ -2,14 +2,17 @@
 #define Website_h
 
 #include <ESP8266WiFi.h>
+#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
 
-const char* ssid = "NodeMCU";
-const char* password = "12345678";
+#ifndef STASSID
+#define STASSID "WiFi"  // Change to your own WiFi
+#define STAPSK  "password"   // Change to your own password
+#endif
 
-IPAddress local_ip(192,168,1,1);
-IPAddress gateway(192,168,1,1);
-IPAddress subnet(255,255,255,0);
+const char* ssid = STASSID;
+const char* password = STAPSK;
 
 ESP8266WebServer server(80);
 
