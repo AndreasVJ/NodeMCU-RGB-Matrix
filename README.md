@@ -1,5 +1,4 @@
-# NodeMCU-RGB-Matrix
-School project 2021  
+# NodeMCU-RGB-Matrix 
 The code is made for a 14 * 14 matrix using WS2812, but it should work for other sizes.
 Most of the animations were found on other github pages. Links to these can be found in "Animations.h".
 
