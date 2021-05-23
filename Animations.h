@@ -1,7 +1,70 @@
+void circlePulses() {
+  int circleWidth = 3;
+  int brightnessVariation = 100/circleWidth; // might need to be changed if using other circleWidths
+  uint8_t hue = random8();
+  int startCorner = 1; 
+  int yOffset = 0;  // Start position of pulse
+  int xOffset = 0;
+  float distance[ROWS][COLUMNS];  // List that contains the distance from each led to the circle pulse
+  float maxDistance;  // Max distance before pulse is out of range
+  
+  for (int y = 0; y < ROWS; y++) {
+    for (int x = 0; x < COLUMNS; x++) {
+      distance[x][y] = sqrt(pow(x,2) + pow(y,2)) + circleWidth;
+    }
+  }
+  maxDistance = distance[ROWS-1][COLUMNS-1] + circleWidth;
+
+  while (breakLoop == false) {
+    server.handleClient();
+    EVERY_N_MILLISECONDS(10) {
+      FastLED.clear();
+      for (int y = 0; y < ROWS; y++) {
+        for (int x = 0; x < COLUMNS; x++) {
+          distance[x][y] -= 0.2; // Simulates a pulse by decreasing the distance from every led
+          if (abs(distance[x][y]) < circleWidth) {  // Turns on a led if the distance from the pulse is less than the width
+            leds[serpentine_xy(x, y)].setHSV(hue,255,(circleWidth*1.25 - abs(distance[x][y]))*brightnessVariation); // leds further away from the pulse will have a lower brigthness
+          }
+        }
+      }
+      FastLED.show();
+      if (abs(distance[xOffset][yOffset]) > maxDistance) {  // Checks if pulse is out of range
+        startCorner++;
+        switch(startCorner) { // Changes the starting corner of the next pulse by changing the x and y offset
+          case 1:
+            xOffset = 0;
+            yOffset = 0;
+            break;
+          case 2:
+            xOffset = COLUMNS-1;
+            yOffset = ROWS-1;
+            break;
+          case 3:
+            xOffset = COLUMNS-1;
+            yOffset = 0;
+            break;
+          case 4:
+            startCorner = 0;
+            xOffset = 0;
+            yOffset = ROWS-1;
+            break;
+        }
+        hue += 50;  // Changes color
+        for (int y = 0; y < ROWS; y++) {
+          for (int x = 0; x < COLUMNS; x++) {
+            distance[x][y] = sqrt(pow((x-xOffset),2) + pow((y-yOffset),2)) + circleWidth; // New list of pulse distances based on x and y offset
+          }
+        }
+      }
+    }
+  }
+}
+
+
 // Found on https://github.com/atuline/FastLED-Demos/blob/master/dot_beat/dot_beat.ino
-void fastDots(int rows, int columns, CRGB leds[]) {
+void fastDots() {
   // Define variables used by the sequences.
-  int numLeds = rows*columns;
+  int numLeds = ROWS*COLUMNS;
   int   thisdelay =   10;                                       // A delay value for the sequence(s)
   uint8_t   count =   0;                                        // Count up to 255 and then reverts to 0
   uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
@@ -25,8 +88,8 @@ void fastDots(int rows, int columns, CRGB leds[]) {
 
 
 // Found on https://github.com/atuline/FastLED-Demos/blob/master/confetti_pal/confetti_pal.ino
-void confetti(int rows, int columns,CRGB leds[]) {
-  int numLeds = rows*columns;
+void confetti() {
+  int numLeds = ROWS*COLUMNS;
   CRGBPalette16 currentPalette;
   CRGBPalette16 targetPalette;
   TBlendType    currentBlending = LINEARBLEND;;                                // NOBLEND or LINEARBLEND
@@ -69,18 +132,18 @@ void confetti(int rows, int columns,CRGB leds[]) {
 }
 
 // Found on https://github.com/FastLED/FastLED/blob/master/examples/XYMatrix/XYMatrix.ino
-void rotatingRainbow(int rows, int columns, CRGB leds[]) {
+void rotatingRainbow() {
   breakLoop = false;
   while (breakLoop == false) {
     server.handleClient();
     uint32_t ms = millis();
-    int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / columns));
-    int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / rows));
+    int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / COLUMNS));
+    int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / ROWS));
     uint8_t lineStartHue = ms / 65536;
-      for( uint8_t y = 0; y < columns; y++) {
+      for( uint8_t y = 0; y < COLUMNS; y++) {
         lineStartHue += yHueDelta32 / 32768;
         uint8_t pixelHue = lineStartHue;      
-        for( uint8_t x = 0; x < rows; x++) {
+        for( uint8_t x = 0; x < ROWS; x++) {
           pixelHue += xHueDelta32 / 32768;
           leds[ serpentine_xy(x, y)]  = CHSV( pixelHue, 255, 255);
         }
@@ -89,18 +152,6 @@ void rotatingRainbow(int rows, int columns, CRGB leds[]) {
   }
 }
 
-
-void red(int rows, int columns, CRGB leds[]) {
-  breakLoop = false;
-  int NUM_LEDS = rows * columns;
-  for (int i = 0; i<NUM_LEDS; i++) {
-    leds[i].setRGB(255,0,0);
-  }
-  FastLED.show();
-  while (breakLoop == false) {
-    server.handleClient();
-  }
-}
 
 DEFINE_GRADIENT_PALETTE(sunshine_gp) {
     0, 120, 0, 0,
@@ -113,9 +164,9 @@ DEFINE_GRADIENT_PALETTE(sunshine_gp) {
 };
 
 // Gives all pixels a color from the palette above. Gradually changes the positions on the palette
-void sunshine(int numberOfRows, int numberOfColumns, CRGB leds[]) {
+void sunshine() {
   breakLoop = false;
-  int NUM_LEDS = numberOfRows * numberOfColumns;
+  int NUM_LEDS = ROWS * COLUMNS;
   uint8_t colorIndex[NUM_LEDS];
   
   CRGBPalette16 sunshinePalette = sunshine_gp;
@@ -140,31 +191,8 @@ void sunshine(int numberOfRows, int numberOfColumns, CRGB leds[]) {
 }
 
 
-void greenRays(int numberOfRows, int numberOfColumns, CRGB leds[]) {
-  int greenValue = 206;
-  while (true) {
-    FastLED.clear();
-    for (int i = 0; i<numberOfRows*numberOfColumns; i++) {
-      leds[i].setRGB(0, greenValue, greenValue);
-      if (i<10) {
-        for (int n = 1; n<i; n++) {
-          leds[i-n].setRGB(0, greenValue-n*2, greenValue-n*10);
-        }
-      }
-      else {
-        for (int n = 0; n<10; n++) {
-          leds[i-n].setRGB(0, greenValue-n*2, greenValue-n*10);
-        }
-        leds[i-10].setRGB(0, 0, 0);
-      }
-      FastLED.show();
-      delay(10);
-    }
-  }
-}
-
 // Found on https://gist.github.com/StefanPetrick/1ba4584e534ba99ca259c1103754e4c5
-void fire(int rows, int columns, CRGB leds[]) {
+void fire() {
   uint32_t scale_x;
   uint32_t scale_y;
   
@@ -175,8 +203,8 @@ void fire(int rows, int columns, CRGB leds[]) {
   // heatmap data with the size matrix width * height
   uint8_t heat[196];
   CRGBPalette16 Pal = HeatColors_p;
-  uint8_t Width  = 14;
-  uint8_t Height = 14;
+  uint8_t Width  = COLUMNS;
+  uint8_t Height = ROWS;
   uint8_t CentreX =  (Width / 2) - 1;
   uint8_t CentreY = (Height / 2) - 1;
 
@@ -218,9 +246,9 @@ void fire(int rows, int columns, CRGB leds[]) {
     
       // Calculate the noise array based on the control parameters.
       uint8_t layer = 0;
-      for (uint8_t i = 0; i < rows; i++) {
+      for (uint8_t i = 0; i < ROWS; i++) {
         uint32_t ioffset = scale_x * (i - CentreX);
-        for (uint8_t j = 0; j < columns; j++) {
+        for (uint8_t j = 0; j < COLUMNS; j++) {
           uint32_t joffset = scale_y * (j - CentreY);
           uint16_t data = ((inoise16(x + ioffset, y + joffset, z)) + 1);
           noise[i][j] = data >> 8;
@@ -230,23 +258,23 @@ void fire(int rows, int columns, CRGB leds[]) {
     
       // Draw the first (lowest) line - seed the fire.
       // It could be random pixels or anything else as well.
-      for (uint8_t x = 0; x < rows; x++) {
+      for (uint8_t x = 0; x < ROWS; x++) {
         // draw
-        leds[serpentine_xy(x, columns-1)] = ColorFromPalette( Pal, noise[x][0]);
+        leds[serpentine_xy(x, COLUMNS-1)] = ColorFromPalette( Pal, noise[x][0]);
         // and fill the lowest line of the heatmap, too
-        heat[serpentine_xy(x, columns-1)] = noise[x][0];
+        heat[serpentine_xy(x, COLUMNS-1)] = noise[x][0];
       }
     
       // Copy the heatmap one line up for the scrolling.
-      for (uint8_t y = 0; y < columns - 1; y++) {
-        for (uint8_t x = 0; x < rows; x++) {
+      for (uint8_t y = 0; y < COLUMNS - 1; y++) {
+        for (uint8_t x = 0; x < ROWS; x++) {
           heat[serpentine_xy(x, y)] = heat[serpentine_xy(x, y + 1)];
         }
       }
     
       // Scale the heatmap values down based on the independent scrolling noise array.
-      for (uint8_t y = 0; y < columns - 1; y++) {
-        for (uint8_t x = 0; x < rows; x++) {
+      for (uint8_t y = 0; y < COLUMNS - 1; y++) {
+        for (uint8_t x = 0; x < ROWS; x++) {
     
           // get data from the calculated noise field
           uint8_t dim = noise[x][y];
@@ -267,8 +295,8 @@ void fire(int rows, int columns, CRGB leds[]) {
       }
     
       // Now just map the colors based on the heatmap.
-      for (uint8_t y = 0; y < columns - 1; y++) {
-        for (uint8_t x = 0; x < rows; x++) {
+      for (uint8_t y = 0; y < COLUMNS - 1; y++) {
+        for (uint8_t x = 0; x < ROWS; x++) {
           leds[serpentine_xy(x, y)] = ColorFromPalette( Pal, heat[serpentine_xy(x, y)]);
         }
       }

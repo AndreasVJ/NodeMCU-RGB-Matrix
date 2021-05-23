@@ -2,6 +2,7 @@
 #define ROWS 14
 #define COLUMNS 14
 #define LED_PIN 4
+const int NUM_LEDS = ROWS*COLUMNS;
 
 // Global variables used for changing animations and sending commands
 bool left = false;
@@ -12,27 +13,25 @@ bool enter = false;
 bool breakLoop = false;
 
 // Setting "Hello" scrolling text as the first animation after connecting to WiFi
-String queue = "scrolling text";
+String queue = "Scrolling text";
 String text = "Hello";
 
 #include <FastLED.h>
+CRGB leds[NUM_LEDS]; //FastLED list containing the colors of each induvidual pixel
 #include "MatrixCords.h"
 #include "Website.h"
 #include "Text.h"
 #include "Snake.h"
 #include "Animations.h"
 
-#define NUM_LEDS ROWS*COLUMNS
-
-CRGB leds[NUM_LEDS]; //FastLED list containing the colors of each induvidual pixel
 
 // List containing all links on main menu. Adding new strings will display them as links on main menu
-String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti", "FastDots"};
+String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti", "FastDots", "CirclePulses"};
 int numberOfEvents = sizeof(events) / sizeof(String);
 
 void setup() {
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.setMaxPowerInVoltsAndMilliamps(5, 1500);
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
   // Garbage signals often turn on some pixels when powering up. This clears these pixels
   FastLED.clear();
   FastLED.show();
@@ -88,6 +87,7 @@ void setup() {
   server.on("/Fire", handle_fire);
   server.on("/Confetti", handle_confetti);
   server.on("/FastDots", handle_fastDots);
+  server.on("/CirclePulses", handle_circlePulses);
   server.onNotFound(handle_NotFound);
   server.begin();
 }
@@ -104,34 +104,34 @@ void loop() {
   }
   else {
     breakLoop = false; // Variable used to jump out of animation and game loops. It must be set to false before playing an animation
-    if (queue == "snake") {
-      queue = ""; // Must be set to empty string to prevent animation from playing again after request to leave
-      playSnake(ROWS, COLUMNS, 1000, leds);
+    if (queue == "Snake") {
+      playSnake();
     }
-    else if (queue == "scrolling text") {
-      queue = "";
+    else if (queue == "Scrolling text") {
       scrollingText(text, ROWS, COLUMNS, LED_PIN);
       FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS); // scrollingText uses Adafruit_NeoMatrix. Leds has to be added again for FastLED to function properly        
     }
-    else if (queue == "rainbow") {
-      queue = "";
-      rotatingRainbow(ROWS, COLUMNS, leds);
+    else if (queue == "Rainbow") {
+      rotatingRainbow();
     }
-    else if (queue == "sunshine") {
-      queue = "";
-      sunshine(ROWS, COLUMNS, leds);
+    else if (queue == "Sunshine") {
+      sunshine();
     }
-    else if (queue == "fire") {
-      queue = "";
-      fire(ROWS, COLUMNS, leds);
+    else if (queue == "Fire") {
+      fire();
     }
-    else if (queue == "confetti") {
-      queue = "";
-      confetti(ROWS, COLUMNS, leds);
+    else if (queue == "Confetti") {
+      confetti();
     }
-    else if (queue == "fastDots") {
-      queue = "";
-      fastDots(ROWS, COLUMNS, leds);
+    else if (queue == "FastDots") {
+      fastDots();
+    }
+    else if (queue == "CirclePulses") {
+      circlePulses();
+    }
+    else {
+      text = "Invalid queue string";
+      queue = "Scrolling text";
     }
   }
   
@@ -142,12 +142,13 @@ void handle_mainMenu() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
   FastLED.clear();
   FastLED.show();
+  queue = "";
   breakLoop = true;
 }
 
 void handle_snake() {
   server.send(200, "text/html", snakeHTML());
-  queue = "snake";
+  queue = "Snake";
   breakLoop = true;
 }
 
@@ -172,31 +173,37 @@ void handle_snakeDown() {
 
 void handle_rainbow() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "rainbow";
+  queue = "Rainbow";
   breakLoop = true;
 }
 
 void handle_sunshine() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "sunshine";
+  queue = "Sunshine";
   breakLoop = true;
 }
 
 void handle_fire() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "fire";
+  queue = "Fire";
   breakLoop = true;
 }
 
 void handle_confetti() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "confetti";
+  queue = "Confetti";
   breakLoop = true;
 }
 
 void handle_fastDots() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "fastDots";
+  queue = "FastDots";
+  breakLoop = true;
+}
+
+void handle_circlePulses() {
+  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
+  queue = "CirclePulses";
   breakLoop = true;
 }
 

@@ -25,7 +25,7 @@ void moveSnakePart(int &gridColumnPosition, int &gridRowPosition, int snakePartD
 }
 
 
-void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]) {
+void playSnake() {
   FastLED.clear();
   breakLoop = false;
   left = false;
@@ -33,11 +33,11 @@ void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]
   right = false;
   up = false;
 
-  int grid[numberOfRows][numberOfColumns]; // Makes game grid
-  const int middleRow = round(numberOfRows/2); // Finds the middle
+  int grid[ROWS][COLUMNS]; // Makes game grid
+  const int middleRow = round(ROWS/2); // Finds the middle
   // Changes all grid values to 0
-  for (int i = 0; i<numberOfRows; i++){
-    for (int n = 0; n<numberOfColumns; n++) {
+  for (int i = 0; i<ROWS; i++){
+    for (int n = 0; n<COLUMNS; n++) {
       grid[i][n] = 0;
     }
   }
@@ -46,13 +46,13 @@ void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]
     grid[middleRow][i] = 2;
     leds[serpentine_xy(1+i, middleRow)].setRGB(0,255,0);
   }
-  grid[middleRow][numberOfColumns-2] = 5; // Adds apple
+  grid[middleRow][COLUMNS-2] = 5; // Adds apple
 
   int headGridPosition[] = {middleRow, 4};
   int tailGridPosition[] = {middleRow, 1};
   int headDirection = 2;
   int tailDirection = 2;
-  int appleGridPosition[] = {middleRow, numberOfColumns-2};
+  int appleGridPosition[] = {middleRow, COLUMNS-2};
   leds[serpentine_xy(appleGridPosition[1], appleGridPosition[0])].setRGB(255,0,0);
   bool apple = false;
 
@@ -89,9 +89,8 @@ void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]
     }
 
     currentTime = millis();
-    if (currentTime - previousTime > moveDelay) {
+    if (currentTime - previousTime > 500) {
       previousTime = currentTime;
-      Serial.println(previousTime);
 
       // Changes direction
       if (numberOfMoves > 0) {
@@ -107,8 +106,8 @@ void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]
       // Checks collision with apple
       if (grid[headGridPosition[0]][headGridPosition[1]] == 5) {
         score++;
-        if (score == numberOfRows*numberOfColumns - 4) {
-          Serial.println("You Win");
+        if (score == ROWS*COLUMNS - 4) {
+          text = "You won";
           breakLoop = true;
           gameOver = true;
         }
@@ -124,8 +123,8 @@ void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]
       // Gives a new random position to the apple
       else {
         while (grid[appleGridPosition[0]][appleGridPosition[1]] != 0) {
-          appleGridPosition[0] = random(numberOfRows);
-          appleGridPosition[1] = random(numberOfColumns);
+          appleGridPosition[0] = random(ROWS);
+          appleGridPosition[1] = random(COLUMNS);
         }
         grid[appleGridPosition[0]][appleGridPosition[1]] = 5;
         leds[serpentine_xy(appleGridPosition[1], appleGridPosition[0])].setRGB(255,0,0);
@@ -133,38 +132,24 @@ void playSnake(int numberOfRows, int numberOfColumns, int moveDelay, CRGB leds[]
       }
       // Checks collision with it self
       if (grid[headGridPosition[0]][headGridPosition[1]] != 0 and grid[headGridPosition[0]][headGridPosition[1]] != 5) {
-        Serial.println("Game Over");
-        //server.send(200, "text/html", mainMenuHTML());
         breakLoop = true;
-          gameOver = true;
+        gameOver = true;
+        text = "Game Over";
       }
       // Checks collision with walls
-      if (headGridPosition[0] > numberOfRows-1 or headGridPosition[1] > numberOfColumns-1 or
-          headGridPosition[0] < 0 or headGridPosition[1] < 0) {
-        Serial.println("Game Over");
-        //server.send(200, "text/html", mainMenuHTML());
+      if (headGridPosition[0] > ROWS-1 or headGridPosition[1] > COLUMNS-1 or headGridPosition[0] < 0 or headGridPosition[1] < 0) {
         breakLoop = true;
-          gameOver = true;
+        gameOver = true;
+        text = "Game Over";
       }
       grid[headGridPosition[0]][headGridPosition[1]] = headDirection;
       leds[serpentine_xy(headGridPosition[1], headGridPosition[0])].setRGB(0,255,0);
 
-      // Prints grid
-      for (int i = 0; i<numberOfRows; i++){
-        for (int n = 0; n<numberOfColumns; n++) {
-          Serial.print("{");
-          Serial.print(grid[i][n]);
-          Serial.print("},");
-        }
-        Serial.println();
-        Serial.println();
-      }
       FastLED.show();
     }
   }
-  // Sets "Game Over" scrolling text as next animation if game ended because of collision
+  // Sets scrolling text as next animation if game ended because of collision or max score
   if (gameOver) {
-    queue = "scrolling text";
-    text = "Game Over";
+    queue = "Scrolling text";
   }
 }
