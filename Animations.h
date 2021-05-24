@@ -1,4 +1,5 @@
-void circlePulses() {
+// Sends pulses with random colors from the corners
+void cornerPulses() {
   int circleWidth = 3;
   int brightnessVariation = 100/circleWidth; // might need to be changed if using other circleWidths
   uint8_t hue = random8();
@@ -10,7 +11,7 @@ void circlePulses() {
   
   for (int y = 0; y < ROWS; y++) {
     for (int x = 0; x < COLUMNS; x++) {
-      distance[x][y] = sqrt(pow(x,2) + pow(y,2)) + circleWidth;
+      distance[x][y] = sqrt(pow((x-xOffset),2) + pow((y-yOffset),2)) + circleWidth;
     }
   }
   maxDistance = distance[ROWS-1][COLUMNS-1] + circleWidth;
@@ -53,6 +54,106 @@ void circlePulses() {
         for (int y = 0; y < ROWS; y++) {
           for (int x = 0; x < COLUMNS; x++) {
             distance[x][y] = sqrt(pow((x-xOffset),2) + pow((y-yOffset),2)) + circleWidth; // New list of pulse distances based on x and y offset
+          }
+        }
+      }
+    }
+  }
+}
+
+// Same as the animation above, but the pulses starts at random locations
+void randomPulses() {
+  int circleWidth = 2;
+  int brightnessVariation = 100/circleWidth;
+  uint8_t hue = random8();
+  int yOffset = random(0, ROWS);
+  int xOffset = random(0, COLUMNS);
+  float distance[ROWS][COLUMNS];
+  float maxDistance = 0;
+  
+  for (int y = 0; y < ROWS; y++) {
+    for (int x = 0; x < COLUMNS; x++) {
+      distance[x][y] = sqrt(pow((x-xOffset),2) + pow((y-yOffset),2)) + circleWidth;
+      if (distance[x][y] > maxDistance) {
+        maxDistance = distance[x][y];
+      }
+    }
+  }
+  while (breakLoop == false) {
+    server.handleClient();
+    EVERY_N_MILLISECONDS(10) {
+      FastLED.clear();
+      for (int y = 0; y < ROWS; y++) {
+        for (int x = 0; x < COLUMNS; x++) {
+          distance[x][y] -= 0.2;
+          if (abs(distance[x][y]) < circleWidth) {
+            leds[serpentine_xy(x, y)].setHSV(hue,255,(circleWidth*1.25 - abs(distance[x][y]))*brightnessVariation);
+          }
+        }
+      }
+      FastLED.show();
+      if (abs(distance[xOffset][yOffset]) > maxDistance) {
+        yOffset = random(0, ROWS);
+        xOffset = random(0, COLUMNS);
+        hue += 50;
+        maxDistance = 0;
+        for (int y = 0; y < ROWS; y++) {
+          for (int x = 0; x < COLUMNS; x++) {
+            distance[x][y] = sqrt(pow((x-xOffset),2) + pow((y-yOffset),2)) + circleWidth;
+            if (distance[x][y] > maxDistance) {
+              maxDistance = distance[x][y];
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Same as above, but the leds are turned off with the fadeToBlackBy function
+void fireworks() {
+  int circleWidth = 1;
+  int brightnessVariation = 100/circleWidth;
+  uint8_t hue = random8();
+  int yOffset = random(0, ROWS);
+  int xOffset = random(0, ROWS);
+  float distance[ROWS][COLUMNS];
+  int maxDistance = 0;
+  
+  for (int y = 0; y < ROWS; y++) {
+    for (int x = 0; x < COLUMNS; x++) {
+      distance[x][y] = sqrt(pow((x-xOffset),2) + pow((y-yOffset),2)) + circleWidth;
+      if (distance[x][y] > maxDistance) {
+        maxDistance = distance[x][y];
+      }
+    }
+  }
+  while (breakLoop == false) {
+    server.handleClient();
+    EVERY_N_MILLISECONDS(25) {
+      fadeToBlackBy(leds, NUM_LEDS, 1);
+    }
+    EVERY_N_MILLISECONDS(10) {
+      for (int y = 0; y < ROWS; y++) {
+        for (int x = 0; x < COLUMNS; x++) {
+          distance[x][y] -= 0.1;
+          if (abs(distance[x][y]) < circleWidth) {
+            leds[serpentine_xy(x, y)].setHSV(hue,255,(circleWidth*1.25 - abs(distance[x][y]))*brightnessVariation);
+          }
+        }
+      }
+      FastLED.show();
+      if (abs(distance[int(xOffset)][int(yOffset)]) > maxDistance) {
+        hue += 40;
+        yOffset = random(0, ROWS);
+        xOffset = random(0, ROWS);
+        maxDistance = 0;
+        for (int y = 0; y < ROWS; y++) {
+          for (int x = 0; x < COLUMNS; x++) {
+            distance[x][y] = sqrt(pow((x-xOffset),2) + pow((y-yOffset),2)) + circleWidth;
+            if (distance[x][y] > maxDistance) {
+              maxDistance = distance[x][y];
+            }
           }
         }
       }
@@ -163,7 +264,7 @@ DEFINE_GRADIENT_PALETTE(sunshine_gp) {
     255, 120, 0, 0
 };
 
-// Gives all pixels a color from the palette above. Gradually changes the positions on the palette
+// Gives all leds a color from the palette above. Gradually changes the positions on the palette
 void sunshine() {
   breakLoop = false;
   int NUM_LEDS = ROWS * COLUMNS;

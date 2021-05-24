@@ -1,4 +1,4 @@
-/* Returns a correct coordinate if the wiring is the same as on the picture below 
+/* Returns a correct coordinate if the wiring is the same as below 
  *     0 >  1 >  2 >  3 >  4
  *                        |
  *                        |

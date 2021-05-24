@@ -17,7 +17,7 @@ String queue = "Scrolling text";
 String text = "Hello";
 
 #include <FastLED.h>
-CRGB leds[NUM_LEDS]; //FastLED list containing the colors of each induvidual pixel
+CRGB leds[NUM_LEDS]; //FastLED list containing the colors of each induvidual led
 #include "MatrixCords.h"
 #include "Website.h"
 #include "Text.h"
@@ -26,13 +26,14 @@ CRGB leds[NUM_LEDS]; //FastLED list containing the colors of each induvidual pix
 
 
 // List containing all links on main menu. Adding new strings will display them as links on main menu
-String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti", "FastDots", "CirclePulses"};
+String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti", "FastDots", "CornerPulses",
+                   "RandomPulses", "Fireworks"};
 int numberOfEvents = sizeof(events) / sizeof(String);
 
 void setup() {
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
-  // Garbage signals often turn on some pixels when powering up. This clears these pixels
+  // Garbage signals often turn on some leds when powering up. This clears these leds
   FastLED.clear();
   FastLED.show();
   
@@ -87,7 +88,9 @@ void setup() {
   server.on("/Fire", handle_fire);
   server.on("/Confetti", handle_confetti);
   server.on("/FastDots", handle_fastDots);
-  server.on("/CirclePulses", handle_circlePulses);
+  server.on("/CornerPulses", handle_circlePulses);
+  server.on("/RandomPulses", handle_randomPulses);
+  server.on("/Fireworks", handle_fireworks);
   server.onNotFound(handle_NotFound);
   server.begin();
 }
@@ -95,7 +98,7 @@ void setup() {
 /*
  * The program will constantly check for requests from clients. Also while playing an animation or game.
  * Valid request will set breakLoop to true. This will make the program jump out of the current task.
- * queue will also be set to some other string. A new animation or game will start based on queue.
+ * queue will be set to some other string. A new animation or game will start based on queue.
  */
 
 void loop() {
@@ -126,8 +129,14 @@ void loop() {
     else if (queue == "FastDots") {
       fastDots();
     }
-    else if (queue == "CirclePulses") {
-      circlePulses();
+    else if (queue == "CornerPulses") {
+      cornerPulses();
+    }
+    else if (queue == "RandomPulses") {
+      randomPulses();
+    }
+    else if (queue == "Fireworks") {
+      fireworks();
     }
     else {
       text = "Invalid queue string";
@@ -203,7 +212,19 @@ void handle_fastDots() {
 
 void handle_circlePulses() {
   server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "CirclePulses";
+  queue = "CornerPulses";
+  breakLoop = true;
+}
+
+void handle_randomPulses() {
+  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
+  queue = "RandomPulses";
+  breakLoop = true;
+}
+
+void handle_fireworks() {
+  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
+  queue = "Fireworks";
   breakLoop = true;
 }
 
