@@ -1,8 +1,18 @@
 #define FASTLED_ESP8266_RAW_PIN_ORDER
 #define ROWS 14
 #define COLUMNS 14
-#define LED_PIN 4
+#define LED_PIN 4 
 const int NUM_LEDS = ROWS*COLUMNS;
+
+// Lists containing all links on main menu
+String games[] =  {"Snake"};
+
+int numberOfGames = sizeof(games) / sizeof(String);
+
+String animations[] = {"Rainbow", "Sunshine", "Fire", "Confetti", "FastDots", "CornerPulses",
+                       "RandomPulses", "Fireworks"};
+                       
+int numberOfAnimations = sizeof(animations) / sizeof(String);
 
 // Global variables used for changing animations and sending commands
 bool left = false;
@@ -22,13 +32,9 @@ CRGB leds[NUM_LEDS]; //FastLED list containing the colors of each induvidual led
 #include "Website.h"
 #include "Text.h"
 #include "Snake.h"
+#include "Tetris.h"
 #include "Animations.h"
 
-
-// List containing all links on main menu. Adding new strings will display them as links on main menu
-String events[] = {"Snake", "Rainbow", "Sunshine", "Fire", "Confetti", "FastDots", "CornerPulses",
-                   "RandomPulses", "Fireworks"};
-int numberOfEvents = sizeof(events) / sizeof(String);
 
 void setup() {
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
@@ -79,18 +85,16 @@ void setup() {
   // Adding responses to URLs. All handle functions can be found at the end of the file
   server.on("/", handle_mainMenu);
   server.on("/Snake", handle_snake);
+  server.on("/Tetris", handle_tetris);
   server.on("/SnakeUp", handle_snakeUp);
   server.on("/SnakeLeft", handle_snakeLeft);
   server.on("/SnakeDown", handle_snakeDown);
   server.on("/SnakeRight", handle_snakeRight);
-  server.on("/Rainbow", handle_rainbow);
-  server.on("/Sunshine", handle_sunshine);
-  server.on("/Fire", handle_fire);
-  server.on("/Confetti", handle_confetti);
-  server.on("/FastDots", handle_fastDots);
-  server.on("/CornerPulses", handle_circlePulses);
-  server.on("/RandomPulses", handle_randomPulses);
-  server.on("/Fireworks", handle_fireworks);
+
+  for (int i = 0; i < numberOfAnimations; i++) {
+    makeAnimationLink(animations[i]);
+  }
+  
   server.onNotFound(handle_NotFound);
   server.begin();
 }
@@ -109,6 +113,10 @@ void loop() {
     breakLoop = false; // Variable used to jump out of animation and game loops. It must be set to false before playing an animation
     if (queue == "Snake") {
       playSnake();
+    }
+    else if (queue == "Tetris") {
+      playTetris();
+      Serial.println("done");
     }
     else if (queue == "Scrolling text") {
       scrollingText(text, ROWS, COLUMNS, LED_PIN);
@@ -148,7 +156,7 @@ void loop() {
 
 // Functions used when a valid request has been received
 void handle_mainMenu() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
+  server.send(200, "text/html", mainMenuHTML());
   FastLED.clear();
   FastLED.show();
   queue = "";
@@ -180,51 +188,9 @@ void handle_snakeDown() {
   down = true;
 }
 
-void handle_rainbow() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "Rainbow";
-  breakLoop = true;
-}
-
-void handle_sunshine() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "Sunshine";
-  breakLoop = true;
-}
-
-void handle_fire() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "Fire";
-  breakLoop = true;
-}
-
-void handle_confetti() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "Confetti";
-  breakLoop = true;
-}
-
-void handle_fastDots() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "FastDots";
-  breakLoop = true;
-}
-
-void handle_circlePulses() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "CornerPulses";
-  breakLoop = true;
-}
-
-void handle_randomPulses() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "RandomPulses";
-  breakLoop = true;
-}
-
-void handle_fireworks() {
-  server.send(200, "text/html", mainMenuHTML(events, numberOfEvents));
-  queue = "Fireworks";
+void handle_tetris() {
+  server.send(200, "text/html", mainMenuHTML());
+  queue = "Tetris";
   breakLoop = true;
 }
 

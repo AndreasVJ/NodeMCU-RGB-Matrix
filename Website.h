@@ -1,6 +1,3 @@
-#ifndef Website_h
-#define Website_h
-
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -16,7 +13,7 @@ const char* password = STAPSK;
 
 ESP8266WebServer server(80);
 
-String mainMenuHTML(String *links, int numberOfLinks) {
+String mainMenuHTML() {
   String html =  "<!DOCTYPE html>";
          html +=     "<html>";
          html +=        "<head>";
@@ -28,9 +25,13 @@ String mainMenuHTML(String *links, int numberOfLinks) {
          html +=        "<body style=\"font-size: 64px; background-color:#0B0C10; margin-top: 50px; margin-bottom: 50px;\">";
          html +=            "<h1 style=\"color:#FFFFFF;\">Main menu</h1>";
          html +=            "<hr>";
-         
-         for (int i = 0; i < numberOfLinks; i++) {
-           html +=          "<a href=\"/" + links[i] + "\">" + links[i] + "</a>";
+
+         for (int i = 0; i < numberOfGames; i++) {
+           html +=          "<a href=\"/" + games[i] + "\">" + games[i] + "</a>";
+           html +=          "<hr>";
+         }
+         for (int i = 0; i < numberOfAnimations; i++) {
+           html +=          "<a href=\"/" + animations[i] + "\">" + animations[i] + "</a>";
            html +=          "<hr>";
          }
 
@@ -86,4 +87,13 @@ String snakeHTML() {
   return html;
 }
 
-#endif
+
+void handle_AnimationLink(String animationName) {
+  server.send(200, "text/html", mainMenuHTML());
+  breakLoop = true;
+  queue = animationName;
+}
+
+void makeAnimationLink(String animationName) {
+  server.on("/" + animationName, std::bind(&handle_AnimationLink, animationName));
+}

@@ -23,7 +23,7 @@ void cornerPulses() {
       for (int y = 0; y < ROWS; y++) {
         for (int x = 0; x < COLUMNS; x++) {
           distance[x][y] -= 0.2; // Simulates a pulse by decreasing the distance from every led
-          if (abs(distance[x][y]) < circleWidth) {  // Turns on a led if the distance from the pulse is less than the width
+          if (abs(distance[x][y]) < circleWidth) {  // Turns on an led if the distance from the pulse is less than the width
             leds[serpentine_xy(x, y)].setHSV(hue,255,(circleWidth*1.25 - abs(distance[x][y]))*brightnessVariation); // leds further away from the pulse will have a lower brigthness
           }
         }
