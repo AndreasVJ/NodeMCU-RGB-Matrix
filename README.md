@@ -3,6 +3,7 @@ The code is made for a 14 * 14 matrix using WS2812, but it should work for other
 Most of the animations were found on other github pages. Links to these can be found in "Animations.h".
 
 # Required Board Manager:  
+  In Arduino IDE  
   Go to File>Preferences>Addittional Boards Manager URLs  
   copy and paste http://arduino.esp8266.com/stable/package_esp8266com_index.json  
   Go to Tools>Board>Boards Manager  
