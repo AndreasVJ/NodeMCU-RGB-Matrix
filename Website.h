@@ -4,8 +4,8 @@
 #include <ESP8266mDNS.h>
 
 #ifndef STASSID
-#define STASSID "Telenor1297ett"
-#define STAPSK  "eafpucwtoxesd"
+#define STASSID "WIFI"
+#define STAPSK  "PASSWORD"
 #endif
 
 const char* ssid = STASSID;
